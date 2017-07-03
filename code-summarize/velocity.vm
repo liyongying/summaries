@@ -1,0 +1,39 @@
+<!--获取页面url的参数-->
+#set($tabType =$request.getParameter("tabType"))
+扩展至layout配置
+<property name="layoutUrl" value="layout.vm" />，默认所有页面走 layout.vm
+<property name="layoutKey" value="student_layout"></property>,如果需另外加几个 扩展的页面，则需在xml中额外配置
+需要扩展的vm页面中，配置下
+#set($student_layout="layoutPhone.vm")；layoutPhone.vm为扩展页面的路径
+
+
+#if ($!item.typeCode.equals($!courseinfo.typeSecondTier)) selected #end
+#if ($!{publishType} =="1") checked #end
+
+#if($!attachments.size()>0)
+#foreach( $!item in $!attachments)
+<div id="fileupload_1_$!{velocityCount}" class="uploadify-queue-item">
+    <span class="up_fileIcon"><img src="/assets/img/iconpng/accessory.png"></span>
+    <span class="up_filename">$!item.data.fileName</span>
+    <a href="javascript:void(0);" class="delfilebtn existUpdocs" data-fileName="$!item.data.saveFilename" data-filePath="$!item.data.realSavePath">X</a>
+</div>
+#end
+#else
+    没有符合条件的记录
+#end
+
+
+<select name="workOrderCode" id="J_workOrderCode" class="">
+    <option value="">全部</option>
+    #foreach( $!item in $!workOrderTypeList)
+    <option value="$!{item.typeCode}">$!{item.name}</option>
+    #end
+</select>
+
+<input type="hidden" id="J_workOrderTypeList" value="" data-data="[
+	                        {text: '全部', value: ''},
+						 #foreach ($item in $!workOrderTypeList)
+                        {text: '$!{item.name}', value: '$!{item.typeCode}'},
+						 #end
+						 ]"/>
+

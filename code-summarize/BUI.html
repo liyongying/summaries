@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>title</title>
+    <link href="http://g.alicdn.com/bui/bui/1.1.21/css/bs3/dpl.css" rel="stylesheet">
+    <link href="http://g.alicdn.com/bui/bui/1.1.21/css/bs3/bui.css" rel="stylesheet">
+    <script src="http://g.tbcdn.cn/fi/bui/jquery-1.8.1.min.js"></script>
+    <script src="http://g.alicdn.com/bui/seajs/2.3.0/sea.js"></script>
+    <script src="http://g.alicdn.com/bui/bui/1.1.10/config.js"></script>
+    <style>
+        /*浮层写自定义confirm对话框的样式*/
+        .confirm-dialog .bui-stdmod-header{
+            border-bottom:none;
+            position:absolute;
+        }
+        .confirm-dialog .bui-stdmod-body .x-icon {
+            float: left;
+            margin-top: 0;
+        }
+        .confirm-dialog .bui-stdmod-body .bui-message-content {
+            float: left;
+            margin-left:15px;
+        }
+        .confirm-dialog .bui-stdmod-body{
+            padding-top:20px;
+            padding-bottom:0;
+        }
+        .confirm-dialog .bui-stdmod-footer{
+            border-top:none;
+            text-align: center;
+            padding-top:0;
+            padding-bottom:20px;
+        }
+        .confirm-dialog .bui-ext-close-x{
+            margin-top: 5px!important;
+        }
+
+
+
+    </style>
+</head>
+<body>
+
+</body>
+<script>
+    BUI.use(['bui/tab','bui/mask','bui/grid','bui/data','bui/overlay','bui/calendar'],function(Tab,Mask,Grid,Data,Overlay,Calendar){
+        /***************浮层常用功能***************************************/
+        var dialogSendMessage= new Overlay.Dialog({
+            title:'发送消息',
+            //width:500,
+            //height:500,
+            //配置DOM容器的编号
+            //contentId:'dialogSendMessageCon',
+            //bodyContent:'<div id='whatSectionBox'>"+$("#sectionPopBox #whatSection").html()+"</div>',
+            //elCls : 'confirm-dialog',//自定义浮层样式时设置
+            //dragNode:"",//对话框不可拖动，即不能跟随鼠标移动
+            mask:true,
+            effect:{ // 浮层显示效果
+                effect: 'fade'
+            },
+            align:{
+                node:'.is-read-part',
+                points:["tl","tl"],
+                offset:[0,30]
+            },
+            closeAction:'destroy',
+            buttons:[
+                {
+                    text:'发送',
+                    elCls : 'button button-primary sendMessBtn',
+                    handler : function(){
+                        this.close();
+                    }
+                },{
+                    text:'取消',
+                    elCls : 'button',
+                    handler : function(){
+                        this.close();
+                    }
+                }
+            ]
+        });
+        dialogSendMessage.show();
+
+        /***************浮层写自定义confirm对话框**************************************/
+        //例：添加成功功后给出提示是否需要继续添加
+        var confirmDialog = new Overlay.Dialog({
+            title:'',
+            width:300,
+            height:125,
+            elCls : 'confirm-dialog',
+            mask:false,
+            buttons:[
+                {
+                    text:'需要',
+                    elCls : 'button button-primary',
+                    handler : function(){
+                        //清除已经输入的员工id和查询回显的员工姓名
+                        //$("#addPersonSerVal").val("");
+                        //$("#addPersonName").html("");
+                        this.close();
+                    }
+                },{
+                    text:'不需要',
+                    elCls : 'button',
+                    handler : function(){
+                        this.close();
+                        //dialogAddPerson.close();
+                    }
+                }
+            ],
+
+            bodyContent:'<div class="x-icon x-icon-info">i</div><div class="bui-message-content">'+/*data.message*/'添加成功签到名单成功，'+'需要继续添加吗？</div>'
+        });
+        confirmDialog.show();
+
+        //复杂提示信息,扩展alert
+        var mess='<div><div class="returndata-mess">导入成功：0条数据<br><span style="color:red;">导入失败：6条数据<br>工号：B0419&nbsp;&nbsp;姓名：王磊&nbsp;&nbsp;失败原因：人员已存在<br>工号：B0457&nbsp;&nbsp;姓名：高超&nbsp;&nbsp;失败原因：人员已存在<br>工号：G2038&nbsp;&nbsp;姓名：陈守喆&nbsp;&nbsp;失败原因：人员已存在<br>工号：G2038&nbsp;&nbsp;姓名：陈守喆&nbsp;&nbsp;失败原因：员工姓名为空<br>工号：G2038&nbsp;&nbsp;姓名：陈守喆&nbsp;&nbsp;失败原因：员工编码为空！<br>工号：B4431 s&nbsp;&nbsp;姓名：周良华&nbsp;&nbsp;&nbsp;&nbsp;失败原因：人员id不存在<br></span></div></div>'
+        function alertDialog () {
+            var msg ='<div class="returndata-mess">'+mess+'</div>';
+            BUI.Message.Alert(msg,'warning');
+        }
+        alertDialog();
+
+    });
+
+</script>
+<script>
+    //树渲染时的回调函数
+    tree.on('itemrendered',function(ev){//tree 节点渲染时的 接口，节点无法通过 tree访问，只能 在接口里
+        //回显 复选框选中
+        var arrH = '$!{ruleInfo.readDepartName}'.split(",");
+        var text = ev.item.text;
+        //treeCheckFn();
+        if(arrH.length>0){
+            for(var i=0;i<arrH.length;i++){
+                if(text==arrH[i]){
+                    //$(this).addClass("bui-tree-item-checked");
+                    ev.item.checked = true;
+                    //$(this).find(".x-tree-icon-checkbox").trigger("click");
+                    $(".bui-tree-list.part-tree .bui-tree-item").each(function(){
+                        var text1 = $(this).text();
+                        if(text1==text){
+                            $(this).addClass("bui-tree-item-checked");
+                            //$(this).find(".x-tree-icon-checkbox").trigger("click");
+                        }
+                    });
+                    break;
+                }
+            }
+        }
+    });
+    //再次使用BUI心得：所有 实现某个功能，都是加个某个功能的class。 dom节点渲染之后，可找到进行操作，从而扩展组件的功能
+</script>
+</html>

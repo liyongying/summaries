@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="jsRef/juicer-min.js"></script>
+    <script src="jsRef/jquery-1.11.3.js"></script>
+    <style>
+        .fn-hide{
+            display: none;
+        }
+        /*清除浮动*/
+        .fn-clear{
+            zoom: 1;
+        }
+        .fn-clear:before{
+            content: "";
+            display: table;
+        }
+        .fn-clear:after{
+            visibility: hidden;
+            display: block;
+            font-size: 0;
+            content: " ";
+            clear: both;
+            height: 0;
+        }
+        .inner{
+            width:1200px;
+            margin:0 auto;
+        }
+
+        /*文案过多时,超过宽度，出现省略号，鼠标hover上去，展示全部的,html中设置title属性*/
+        .textDotted{
+            width:300px;
+            white-space:nowrap;
+            text-overflow:ellipsis;
+            overflow:hidden;
+        }
+
+        /*自适应,超过一定宽度时，水平方向出现滚动条*/
+        .autoHScrollBar{
+            height:100px;
+            width: 50px;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+        /*水平方向滚动条总是出现*/
+        .HScrollBar{
+            max-width: 500px;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+        .HScrollBarCon{
+            width:3000px;//这个宽度一定要大于HScrollBar设置的宽度
+            height:20px;
+        }
+        /*自适应,超过一定高度时，垂直方向出现滚动条*/
+        .autoVScrollBar{
+            width:150px;
+            max-height: 150px;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        /*自适应,超过一定宽度时和高度时，水平方向和垂直方向都有滚动条,水平方向无法自适应*/
+        .autoBothScrollBar{
+            max-height:150px;
+            max-width: 150px;
+            overflow: auto;
+        }
+        .bothScrollBarCon{
+            /*这个宽度一定要大于autoHScrollBar设置的宽度，这个必须是width，不能是max-width，否则无滚动条,*/
+            /*强制给autoBothScrollBar设scroll，则也无法滚动*/
+            width:300px;
+        }
+
+
+        /*******隐藏type=file上传浏览器默认样式,先确定页面中需要展示的按钮的位置，再将input type=file的盖在它上面，通过透明度设置，注意visibility不行***********/
+        .fileHide{
+            width: 83px;
+            position: relative;
+            left:-90px;
+            opacity:0;/*设置此控件透明度为零，即完全透明*/
+            filter:alpha(opacity=0);/*设置此控件透明度为零，即完全透明针对IE*/
+        }
+        .fileMask{
+            width: 83px;
+        }
+
+        /********未设高度和宽度的一堆东西这个div的class为unWHcenter在他的父元素（父元素如body，或者某个框width100%，height：100%）中垂直水平居中**********************************/
+        .unWHcenter{
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%,-50%);
+            -webkit-transform: translate(-50%,-50%);
+            -ms-transform: translate(-50%,-50%);
+            -moz-transform: translate(-50%,-50%);
+            -o-transform: translate(-50%,-50%);
+        }
+        /*******未知高度的框在父元素里垂直方向上居中:父元素display:table ,这个宽度还能width：100%，和inline-block不同************************/
+        .unHOcenter{
+             display: table-cell;
+             vertical-align: middle;
+        }
+        /*********设了宽度和高度的div在他的父元素居中,前提父元素，position：relative；***************/
+        .whCenter{
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width:200px;
+            height:200px;
+            margin-left: -100px;
+            margin-top:-100px;
+        }
+        /*************从父元素出发，使他的子元素在他的包围中居中,适用于float的元素或者position：absolute的元素或者行内元素或者行内块级元素*********************/
+        .parentCenter{
+            /*父元素不设置宽度和高度,通过设置一样的padding撑起来*/
+            padding:50px;
+            border:1px solid black;
+        }
+
+
+    </style>
+    <script>
+        $(function(){
+
+            //获得页面url的参数
+            function GetQueryString(name){
+                var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+                var r = window.location.search.substr(1).match(reg);
+                if(r!=null)return  unescape(r[2]); return null;
+            }
+            var tabStr = GetQueryString("tab");
+
+            //去掉字符串最后一个字符
+            var upDocStr="ddddddddddddd"
+            upDocStr= upDocStr.substring(0,upDocStr.length-1);
+
+            /******ajax拿数据回显select************/
+            var areas=[{"areaCode":"1","areaName":"北京"},{"areaCode":"2","areaName":"上京"}];
+            var scheduledArea='2'
+            var areasArr=areas;
+            var text="";
+            areasArr.map(function(objClass){
+                if (objClass.areaCode === scheduledArea) {
+                    text+='<option selected value="'+objClass.areaCode+'">'+objClass.areaName+'</option>';
+                } else {
+                    text+='<option  value="'+objClass.areaCode+'">'+objClass.areaName+'</option>';
+                }
+            });
+            $("#scheduledArea").empty().html(text);
+
+            //转时间的函数
+            function dateChange(value){
+                var date = new Date(value);
+                var month = date.getMonth() + 1 < 10? "0" + (date.getMonth() + 1) : date.getMonth() + 1;
+                var day = date.getDate() < 10? "0" + date.getDate() : date.getDate();
+                var hour = date.getHours()<10? "0" + (date.getHours()) : date.getHours();
+                var minute = date.getMinutes()<10? "0" + (date.getMinutes()) : date.getMinutes();
+                var second = date.getSeconds()<10? "0" + (date.getSeconds()) : date.getSeconds();
+                var newDate = date.getFullYear() + '-' + month + '-' + day + " " + hour + ":" + minute + ":" + second;
+                if (newDate == "NaN-NaN-NaN") {
+                    newDate = ""
+                }
+                return newDate;
+            }
+
+            //删除数组中指定的元素，常用于比较两个json对象，去重相关业务场景
+            function delArrIndex(arr,val){
+                //首先获得该值在数组中的下标
+                var index=-1;//初始化为-1，表示数组中没有该元素
+                for (var i = 0; i < arr.length; i++) {
+                    if (arr[i] == val) {
+                        index= i;
+                        break;//一旦找到了，无需再找，退出循环
+                    }
+                }
+                if (index > -1) {
+                    return arr.slice(0,index).concat(arr.slice(index+1,arr.length));
+                }
+            }
+
+
+            //数组内部去重
+            var res = [];
+            var obj = {};
+            for(var i = 0; i <arr.length; i++){
+                if(!obj[arr[i]]){
+                    res.push(arr[i]);
+                    obj[arr[i]] = 1;
+                }
+            }
+            arr=res;
+
+
+            //两个数组比较去重
+            var empIdArr=[];
+            //_this.addNesArr与_this.sendNewArr进行比较，如果_this.addNesArr的员工id在_this.sendNewArr中已存在则不添加到empIdArr中
+            //console.log(_this.sendNewArr);
+            for(var j=0;j<_this.addNewArr.length;j++){
+                var isAdd=true;
+                for(var k=0;k<_this.sendNewArr.length;k++){
+                    if(_this.addNewArr[j]==_this.sendNewArr[k]){
+                        isAdd=false;
+                    }
+                    //break;
+                }
+                if(isAdd){
+                    empIdArr.push(_this.addNewArr[j]);
+                }
+            }
+            //console.log(empIdArr);
+
+
+
+            //封装ajax，单个参数形式
+            function sendAjax(url,param,successFn,failFn){
+                $.ajax({
+                    url:url,
+                    type:"post",
+                    data:param,
+                    //cache:false,//清除浏览器缓存,浏览器会自动多传一个参数
+                    dataType:"json",
+                    success:function(data){
+                        successFn(data);
+                    },
+                    error:function(){
+                        failFn();
+                    }
+                });
+            }
+            //封装ajax，参数object
+            function sendAjax(obj){
+                $.ajax({
+                    url : obj.url,
+                    type : obj.type,
+                    data : obj.data,
+                    //cache:false,//清除浏览器缓存,一般第一次点击没有问题，往后就出问题，可能就是浏览器缓存问题
+                    async : obj.async ? false : true,
+                    success : function(data){
+                        obj.success(data);
+                    },
+                    error : function(data){
+//                        BUI.Message.Alert("数据请求失败，请稍后重试",function(){
+//                        },'error');
+                        obj.error(data);
+                    }
+                });
+            }
+
+            //ajax jsonp
+            jQuery.ajax({
+                 url:url,
+                 type:"GET",
+                 dataType:"jsonp",
+                 jsonp: "callback",
+                 jsonpCallback:"successCallback",//后端需将传给前端的 放在 successCallback里
+                 success:function(data){
+                     console.log(4566);
+                    console.log(data);
+                 },
+                 error: function(error) {
+                    console.log(error);
+                 }
+            });
+
+            //上传图片获得图片的尺寸
+            var img=new Image();
+            img.src="";
+            var imgWidth=imgHeight="";
+            img.onload=function(){
+                imgWidth=img.offsetWidth;
+                imgHeight=img.offsetHeight;
+            }
+
+
+            //对象动态添加 属性 和值
+            //获取复选框中已选择的发送方式
+            var elCheckbox=$('input[name="stype"]:checked');
+            var elCheckboxLen=elCheckbox.length;
+            //dataObj为发ajax传送的参数
+            var dataObj={
+                empIdStr : "",
+                "message":$("#messageContentTab").val(),
+                courseScheduleCode : "$!{courseScheduleCode}",
+                courseCode : "$!{courseCode}",
+                messageScenario : $("#messageTemplate option:selected").val()
+            }
+            if(elCheckboxLen!="0"){
+                elCheckbox.each(function(){
+                    dataObj[$(this).val()]=$(this).val();
+                });
+            }
+
+            // 对数据进行切割，每几个每几个放一起 算法
+            var goodsList=[
+                <li>1</li>,
+                <li>2</li>,
+                <li>3</li>,
+                <li>4</li>,
+                <li>5</li>,
+                <li>6</li>,
+                <li>7</li>,
+                <li>8</li>,
+                <li>9</li>,
+                <li>10</li>,
+                <li>11</li>,
+                <li>12</li>
+            ];
+            var perPageCount=5;
+            var totalPage=parseInt((goodsList.length+perPageCount-1)/perPageCount);
+            var pageGLArr=[];//为最终分好输出的
+            for(var i=1;i<=totalPage;i++){
+                var newTelArr=[]
+                for(var j=0;(i-1)*perPageCount+j < goodsList.length && j< perPageCount ;j++){
+                    newTelArr.push(goodsList[(i-1)*perPageCount+j]);
+                }
+                if(i==1){
+                    pageGLArr.push(
+                            <ol data-page={i} key={i}>
+                                {newTelArr}
+                            </ol>
+                    );
+                }else{
+                    pageGLArr.push(
+                            <ol data-page={i} className="fn-hide" key={i}>
+                                {newTelArr}
+                            </ol>
+                    );
+                }
+            }
+
+            //数组转为对象
+            var arr=[{empId:11,empName:"小李",mail:"1306558@163.com"},{empId:12,empName:"小赵",mail:"93122@163.com"},{empId:13,empName:"小王",mail:"157051@163.com"}];
+            var empId = [],
+                    empName = [],
+                    mail = [];
+            var obj = {
+                empId : empId,
+                empName : empName,
+                mail : mail
+            };
+            for(var key in obj){
+                for(var i = 0 ; i < data.length ; i ++){
+                    obj[key][i] = arr[i][key]
+                }
+            }
+            console.log(obj);
+
+    });
+
+    </script>
+    //iframe总结：局部刷新页面
+    <script>
+        //动态设置iframe 有些需 iframe加载完之后
+        $("iframe").load(function () {
+            var mainheight = $(this).contents().find("body").height() + 10;
+            $(this).height(mainheight);
+        });
+        //父iframe访问子frame的Dom
+            //不跨域的情况：要带 contents（）
+            //跨子域：document.domain = '域名';
+            //完全跨域：绕路，实在饶不了路 ：同过路径后跟参数 ？
+        //子iframe访问父iframe 不跨域
+            //$("#ruleContent").html($("#ruleContentHtml",window.parent.document).val()); 这个只是取 子页面的dom元素的值， $("#ruleContentHtml"）为父ifrmae的Dom元素
+            // 子iframe 如果想 改变父ifrmae框架的DOM属性等，通过传值 函数回调。 例：
+                //在父iframe中有如下方法：
+                    // 子iframe会调这个方法关联菜单被选中
+                    function toMenu(n){
+                        $("#side-bar-list .bui-tree-item a").each(function(index,value){
+                            var str = $(this).attr("href");
+                            var i = str.indexOf("cId");
+                            var cid = str.substring(i+4);
+                            if(cid == n){
+                                $("#side-bar-list .bui-tree-item").removeClass("bui-tree-item-selected");
+                                $(this).parent(".bui-tree-item").addClass("bui-tree-item-selected");
+                            }
+                        });
+                    }
+                    //子iframe会调这个方法来改变这个父ifram的高度
+                    function toHeight(h){
+                        $("#ifram").height(h+40);
+                    }
+                //子iframe中
+                    $(".breadcrumb li a").click(function(){
+                        //console.log($(this).attr("href"));
+                        var str = $(this).attr("href"),
+                                i = str.indexOf("cId"),
+                                cid = str.substring(i+4);
+                        parent.toMenu(cid);
+                    });
+
+                    function totalH(){
+                        var h1= $("#ifmchildF").height(),
+                                h2= $("#ifmchildS").height();
+                        return h1+h2;
+                    }
+                    $("iframe").load(function () {
+                        var mainheight = $(this).contents().find("body .index-main").height();
+                        $(this).height(mainheight);
+
+                        parent.toHeight(totalH());
+
+                    });
+
+    </script>
+</head>
+
+<style>
+    *{
+        margin:0;
+        padding:0;
+        list-style: none;
+    }
+    .list{
+        margin:20px;
+    }
+</style>
+<body>
+    <div class="textDotted list" >
+        顶顶顶顶顶顶顶顶顶顶顶
+    </div>
+    <div class="HScrollBar list">
+        <div class="HScrollBarCon">
+            最佳答案: 水平和垂直网络释        顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶
+            义水平和垂直:Horizontal and Vertical水平和垂直方向:horizontal and vertical水平和垂直尺寸:Horz and Vert Dimggggggggggg
+        </div>
+    </div>
+    <div class="autoVScrollBar list">
+        yy
+    </div>
+    <div class="autoBothScrollBar list">
+        <div class="bothScrollBarCon">
+            最佳答案: 水平和垂直网络释        顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶
+            最佳答案: 水平和垂直网络释        顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶
+
+            最佳答案: 水平和垂直网络释
+            ddhh
+        </div>
+    </div>
+
+    <div class="list">
+        <button class="fileMask">点我上传附件</button>
+        <input type="file" class="fileHide"/>
+    </div>
+
+    <div class="list">
+        <select name="" id="scheduledArea"></select>
+    </div>
+
+
+    <div class="list" style="width:500px; height: 500px; border:1px solid red;">
+        <div class="whCenter" style="border:1px solid green;position: relative;">
+        </div>
+    </div>
+
+    <div class="list" style="width:100px;">
+        <button class="parentCenter">wosiddddddddd滴答滴答滴的顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶顶答滴答</button>
+    </div>
+    <!--juicer用法,和nujucks语法类相似，貌似最外层只能是对象，无法是数组，适用于发ajax拿数据-->
+    <div id="schedulDialogContent" class="hide editScheClss">
+        我是juicer
+    </div>
+
+    //页面不允许复制粘贴
+    <script>document.oncontextmenu=new Function("event.returnValue=false");document.onselectstart=new Function("event.returnValue=false");</script>
+        //如果这样放在除body以外的元素上是挡不住 ctrl+A的。如果页面上存在 部分内容容许复制，部分不可以，则用iframe嵌套。如果存在跨域的问题，用mask遮罩，mask也挡不住ctrl+A的
+    <div id="ruleContent" style="position:relative;" oncontextmenu="window.event.returnValue=false"
+         onkeypress="window.event.returnValue=false"
+         onkeydown="window.event.returnValue=false"
+         onkeyup="window.event.returnValue=false"
+         ondragstart="window.event.returnValue=false"
+         onselectstart="event.returnValue=false">
+    </div>
+    <script type="text/template" id="editschduleTpl">
+        <!--下面是一些列举的juicer常用语法-->
+        <div>${list}</div>
+        <div>${blah}</div>
+        <ul>
+            {@each list as it,index}
+            <li>${it.name} (index: ${index})</li>
+            {@/each}
+            {@each blah as it}
+            <li>
+                num: ${it.num} <br />
+                {@if it.num==3}
+                {@each it.inner as it2}
+                ${it2.time} <br />
+                {@/each}
+                {@/if}
+            </li>
+            {@/each}
+        </ul>
+        <option value="0" {@if teacherType=="0"} selected {@/if}>内部讲师</option>
+        {@if teacherType=="0"} disabled {@/if}
+    </script>
+    <script>
+        /***ajax中********/
+        var data = {
+            list: [
+                {name:' guokai', show: true},
+                {name:' benben', show: false},
+                {name:' dierbaby', show: true}
+            ],
+            blah: [
+                {num: 1},
+                {num: 2},
+                {num: 3, inner:[
+                    {'time': '15:00'},
+                    {'time': '16:00'},
+                    {'time': '17:00'},
+                    {'time': '18:00'}
+                ]},
+                {num: 4}
+            ]
+        };
+        var editschduleTpl = document.getElementById('editschduleTpl').innerHTML;
+        var htmlScheEdit = juicer(editschduleTpl, data);
+        $(".editScheClss").html(htmlScheEdit);
+    </script>
+
+
+
+    <!--input 只能输入大于0数字-->
+    <input id="enterEstimatedCost" name="" value="" type="text" class="input-middle" onkeyup="this.value=this.value.replace(/[^\d\.]+/g,'')"/>
+    <!--input 只能输入大于0的数字，且不能是小数-->
+    <input id="enterEstimatedNumber" name="" value="" type="text" class="input-middle" onkeyup="this.value=this.value.replace(/\D/g,'')"/>
+    <script language="JavaScript" type="text/javascript">
+        function clearNoNum(obj)
+        {
+            obj.value = obj.value.replace(/[^\d.]/g,"");  //清除“数字”和“.”以外的字符
+            obj.value = obj.value.replace(/^\./g,"");  //验证第一个字符是数字而不是.
+            obj.value = obj.value.replace(/\.{2,}/g,"."); //只保留第一个. 清除多余的
+            obj.value = obj.value.replace(".","$#$").replace(/\./g,"").replace("$#$",".");
+            obj.value=obj.value.replace(/^(\-)*(\d+)\.(\d\d).*$/,'$1$2.$3');//只能输入两个小数
+        }
+        $("#amount").on('keyup', function (event) {
+            var $amountInput = $(this);
+            //响应鼠标事件，允许左右方向键移动
+            event = window.event || event;
+            if (event.keyCode == 37 | event.keyCode == 39) {
+                return;
+            }
+            //先把非数字的都替换掉，除了数字和.
+            $amountInput.val($amountInput.val().replace(/[^\d.]/g, "").
+            //只允许一个小数点
+                    replace(/^\./g, "").replace(/\.{2,}/g, ".").
+            //只能输入小数点后两位
+                    replace(".", "$#$").replace(/\./g, "").replace("$#$", ".").replace(/^(\-)*(\d+)\.(\d\d).*$/, '$1$2.$3'));
+        });
+        $("#amount").on('blur', function () {
+            var $amountInput = $(this);
+            //最后一位是小数点的话，移除
+            $amountInput.val(($amountInput.val().replace(/\.$/g, "")));
+        });
+
+        //email正则
+        var emailRE = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    </script>
+
+</body>
+
+</html>

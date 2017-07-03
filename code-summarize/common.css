@@ -1,0 +1,11 @@
+body,div,h1,h2,h3,h4,h5,h6,dl,dt,dd,ul,ol,li,p,blockquote,pre,form,fieldset,legend,input,button,textarea,hr,abbr,acronym,address,applet,article,aside,section,header,footer,audio,table,tbody,td,tfoot,th,thead{margin:0;padding:0;font:inherit;}
+body{font-family:"Microsoft Yahei",tahoma,arial,"Hiragino Sans GB","\5b8b\4f53";font-size:14px;color:#1a1a1a;-webkit-font-smoothing:antialiased}
+li,ol,ul{list-style:none;}
+table{border-collapse:collapse;}
+a{text-decoration:none}
+a:hover{text-decoration:underline;}
+a,input,textarea{outline:0;}
+.fn-clear{zoom:1;}
+.fn-clear:after{visibility:hidden;display:block;font-size:0;content:" ";clear:both;height:0;}
+.fn-hide{display:none;}
+body{font-family:"Microsoft Yahei",tahoma,arial,"Hiragino Sans GB","\5b8b\4f53";font-size:14px;color:#1a1a1a;-webkit-font-smoothing:antialiased}
